@@ -1,3 +1,3 @@
 module memory-cleaner
 
-go 1.22
+go 1.21
