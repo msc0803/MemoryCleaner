@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"runtime"
 	"syscall"
-	"time"
 	"unsafe"
 )
 
@@ -43,6 +42,7 @@ const (
 	BS_PUSHBUTTON       = 0x00000000
 	WS_CHILD            = 0x40000000
 	WS_TABSTOP          = 0x00010000
+	DT_LEFT             = 0x00000000
 	DT_CENTER           = 0x00000001
 	DT_VCENTER          = 0x00000004
 	DT_SINGLELINE       = 0x00000020
@@ -216,7 +216,7 @@ func wndProc(hwnd uintptr, msg uint32, wParam, lParam uintptr) uintptr {
 
 		for i, line := range lines {
 			text := syscall.StringToUTF16Ptr(line)
-			drawText.Call(hdc, uintptr(unsafe.Pointer(text)), -1,
+			drawText.Call(hdc, uintptr(unsafe.Pointer(text)), uintptr(^uint(0)),
 				uintptr(unsafe.Pointer(&RECT{left: 20, top: int32(i * 25), right: rect.right - 20, bottom: int32((i+1)*25 + 20)})),
 				DT_LEFT|DT_VCENTER|DT_SINGLELINE)
 		}
