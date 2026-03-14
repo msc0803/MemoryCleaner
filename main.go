@@ -43,6 +43,7 @@ const (
 	BS_PUSHBUTTON       = 0x00000000
 	WS_CHILD            = 0x40000000
 	WS_TABSTOP          = 0x00010000
+	DT_LEFT             = 0x00000000
 	DT_CENTER           = 0x00000001
 	DT_VCENTER          = 0x00000004
 	DT_SINGLELINE       = 0x00000020
@@ -227,16 +228,20 @@ func wndProc(hwnd uintptr, msg uint32, wParam, lParam uintptr) uintptr {
 	case WM_COMMAND:
 		switch wParam {
 		case 1: // 清理物理内存
-			freed := cleanPhysicalMemory()
-			title := syscall.StringToUTF16Ptr(fmt.Sprintf("完成 - 释放 %s", formatBytes(freed)))
-			setWindowText.Call(hwnd, uintptr(unsafe.Pointer(title)))
-			invalidateRect.Call(hwnd, 0, 1)
+			go func() {
+				freed := cleanPhysicalMemory()
+				title := syscall.StringToUTF16Ptr(fmt.Sprintf("完成 - 释放 %s", formatBytes(freed)))
+				setWindowText.Call(hwnd, uintptr(unsafe.Pointer(title)))
+				invalidateRect.Call(hwnd, 0, 1)
+			}()
 
 		case 2: // 清理工作集
-			cleanWorkingSet()
-			title := syscall.StringToUTF16Ptr("工作集清理完成")
-			setWindowText.Call(hwnd, uintptr(unsafe.Pointer(title)))
-			invalidateRect.Call(hwnd, 0, 1)
+			go func() {
+				cleanWorkingSet()
+				title := syscall.StringToUTF16Ptr("工作集清理完成")
+				setWindowText.Call(hwnd, uintptr(unsafe.Pointer(title)))
+				invalidateRect.Call(hwnd, 0, 1)
+			}()
 
 		case 3: // 自动清理
 			autoClean = !autoClean
@@ -257,7 +262,7 @@ func wndProc(hwnd uintptr, msg uint32, wParam, lParam uintptr) uintptr {
 
 	case WM_TIMER:
 		if wParam == 101 && autoClean {
-			cleanPhysicalMemory()
+			go cleanPhysicalMemory()
 		}
 		invalidateRect.Call(hwnd, 0, 1)
 
@@ -280,6 +285,7 @@ func cleanPhysicalMemory() uint64 {
 	emptyWorkingSet.Call(handle)
 
 	runtime.GC()
+	time.Sleep(100 * time.Millisecond)
 
 	after := getMemoryStatus()
 	freed := int64(before.ullTotalPhys-before.ullAvailPhys) - int64(after.ullTotalPhys-after.ullAvailPhys)
