@@ -217,7 +217,7 @@ func wndProc(hwnd uintptr, msg uint32, wParam, lParam uintptr) uintptr {
 		for i, line := range lines {
 			text := syscall.StringToUTF16Ptr(line)
 			drawText.Call(hdc, uintptr(unsafe.Pointer(text)), -1,
-				uintptr(unsafe.Pointer(&RECT{left: 20, top: int32(i * 25), right: rect.right - 20, bottom: int32((i+1)*25 + 20)}),
+				uintptr(unsafe.Pointer(&RECT{left: 20, top: int32(i * 25), right: rect.right - 20, bottom: int32((i+1)*25 + 20)})),
 				DT_LEFT|DT_VCENTER|DT_SINGLELINE)
 		}
 
